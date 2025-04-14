@@ -24,29 +24,6 @@ from openai import OpenAIError
 # Initialize the OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-st.title("OpenAI API Test")
-
-user_input = st.text_input("Ask something:")
-
-if st.button("Send"):
-    if user_input:
-        try:
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "user", "content": user_input}
-                ]
-            )
-            st.success("Response from GPT:")
-            st.write(response.choices[0].message.content)
-        except OpenAIError as e:
-            st.error(f"OpenAI API error: {e}")
-    else:
-        st.warning("Please enter a prompt before sending.")
-
-
-
-
 # Title
 st.title("💼 AI Resume Analyzer & Interview Coach")
 

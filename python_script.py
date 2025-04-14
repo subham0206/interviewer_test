@@ -135,15 +135,6 @@ if resume_file:
                 "payload": {
                     "Script": meta_script
                 }
-                "properties": {
-                "max_call_duration": 3600,
-                "participant_left_timeout": 60,
-                "participant_absent_timeout": 300,
-                "enable_recording": False,
-                "enable_transcription": True,
-                "apply_greenscreen": True,
-                "language": "english"
-            }
             }
 
             response = requests.post(tavus_api, json=payload, headers=headers)

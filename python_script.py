@@ -27,7 +27,8 @@ else:
     st.error("❌ OPENAI_API_KEY not found!")
 
 # Set the API key
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+#openai.api_key = st.secrets["OPENAI_API_KEY"]
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # Optional: Test OpenAI API connection
 try:

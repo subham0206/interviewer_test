@@ -98,18 +98,25 @@ def start_interview(candidate):
     else:
         print(f"❌ Failed to start interview. Status Code: {response.status_code}")
 
+
 # Resume processing
 if resume_file:
-    with st.spinner("Reading and analyzing your resume..."):
+    with st.spinner("📄 Reading and analyzing your resume..."):
         resume_text = extract_text_from_pdf(resume_file)
         candidate_info = parse_resume_info(resume_text)
 
     if candidate_info:
-        st.subheader("📊 Candidate Summary")
-        st.write(candidate_info)
+        st.markdown("## 📊 Candidate Summary")
+        st.markdown("---")
+        st.markdown(f"""
+        **👤 Name:** {candidate_info['name']}  
+        **💼 Experience:** {candidate_info['experience']}  
+        **🛠️ Skills:** {candidate_info['skills']}
+        """)
+        st.markdown("---")
 
         # Interview Question Generation
-        with st.spinner("Generating interview questions..."):
+        with st.spinner("🤖 Generating personalized interview questions..."):
             interview_prompt = f"""
             You are an AI interviewer. Generate 5 technical and 3 behavioral questions for a candidate with the following profile:
 
@@ -119,10 +126,21 @@ if resume_file:
 
             Return each question on a new line.
             """
-            interview_questions = gpt_response(interview_prompt)
-        
-        st.subheader("🧠 Interview Questions")
-        st.text(interview_questions)
+            interview_questions_raw = gpt_response(interview_prompt)
+
+        interview_questions = interview_questions_raw.strip().split("\n")
+
+        st.markdown("## 🧠 AI-Generated Interview Questions")
+        st.markdown("Here are some tailored questions based on the candidate profile:")
+        st.markdown("---")
+
+        for i, question in enumerate(interview_questions, 1):
+            with st.chat_message("assistant"):
+                st.markdown(f"**Q{i}:** {question}")
+
+        st.markdown("---")
+        st.success("✅ Interview questions generated successfully.")
+
 
         # Generate Tavus Meta Human Video
         with st.spinner("Creating AI Interviewer video (Tavus)..."):

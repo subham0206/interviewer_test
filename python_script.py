@@ -95,7 +95,7 @@ def start_interview(candidate):
         "replica_id": "r79e1c033f",
         "persona_id": "p9a95912",
         "callback_url": "https://api.einstellen.ai/api/v1/webapp/candidate/transcript/create-raw-transcript",
-        "conversation_name": f"A Interview with {candidate}, {interview_questions}",
+        "conversation_name": f"{meta_script}",
         "custom_greeting": f"Hey {candidate}, nice to meet you! How are you today?",
         "properties": {
             "max_call_duration": 3600,

@@ -18,27 +18,32 @@ TAVUS_API_KEY = st.secrets["TAVUS_API_KEY"]
 
 
 import streamlit as st
-import openai
+from openai import OpenAI
+from openai import OpenAIError
 
-# Test secret access
-if "OPENAI_API_KEY" in st.secrets:
-    st.success("✅ OPENAI_API_KEY loaded successfully.")
-else:
-    st.error("❌ OPENAI_API_KEY not found!")
-
-# Set the API key
-#openai.api_key = st.secrets["OPENAI_API_KEY"]
+# Initialize the OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# Optional: Test OpenAI API connection
-try:
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": "Hello!"}]
-    )
-    st.write("GPT says:", response.choices[0].message["content"])
-except Exception as e:
-    st.error(f"OpenAI API error: {e}")
+st.title("OpenAI API Test")
+
+user_input = st.text_input("Ask something:")
+
+if st.button("Send"):
+    if user_input:
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "user", "content": user_input}
+                ]
+            )
+            st.success("Response from GPT:")
+            st.write(response.choices[0].message.content)
+        except OpenAIError as e:
+            st.error(f"OpenAI API error: {e}")
+    else:
+        st.warning("Please enter a prompt before sending.")
+
 
 
 

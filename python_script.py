@@ -10,19 +10,35 @@ import pandas as pd
 st.set_page_config(page_title="AI Resume Analyzer & Interview Prep", layout="wide")
 
 # Securely load API keys from Streamlit secrets
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+#openai.api_key = st.secrets["OPENAI_API_KEY"]
 TAVUS_API_KEY = st.secrets["TAVUS_API_KEY"]
 
 #openai.api_key = "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"
 #TAVUS_API_KEY = "f79b23d9334b462f81341c010e8f6f59"
 
 
-response = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    messages=[{"role": "user", "content": "Hello!"}]
-)
+import streamlit as st
+import openai
 
-st.write("Test GPT Response:", response.choices[0].message["content"])
+# Test secret access
+if "OPENAI_API_KEY" in st.secrets:
+    st.success("✅ OPENAI_API_KEY loaded successfully.")
+else:
+    st.error("❌ OPENAI_API_KEY not found!")
+
+# Set the API key
+openai.api_key = st.secrets["OPENAI_API_KEY"]
+
+# Optional: Test OpenAI API connection
+try:
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": "Hello!"}]
+    )
+    st.write("GPT says:", response.choices[0].message["content"])
+except Exception as e:
+    st.error(f"OpenAI API error: {e}")
+
 
 
 # Title

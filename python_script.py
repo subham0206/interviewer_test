@@ -16,6 +16,15 @@ TAVUS_API_KEY = st.secrets["TAVUS_API_KEY"]
 #openai.api_key = "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"
 #TAVUS_API_KEY = "f79b23d9334b462f81341c010e8f6f59"
 
+
+response = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+
+st.write("Test GPT Response:", response.choices[0].message["content"])
+
+
 # Title
 st.title("💼 AI Resume Analyzer & Interview Coach")
 

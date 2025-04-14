@@ -150,12 +150,13 @@ if resume_file:
 
         # Generate Tavus Meta Human Video
         with st.spinner("Creating AI Interviewer video (Tavus)..."):
-            
-
             meta_script = f"""
             Hi {candidate_info['name']}, this is your AI interviewer.
             Let's dive into your experience of {candidate_info['experience']}.
             We noticed skills like {candidate_info['skills']}.
             Let's go through some interview questions to help you prepare!
             """
-            start_interview(candidate_info['name'])
+            tavus_response = start_interview(candidate_info['name'])
+            if tavus_response:
+                st.success("The interview video is being processed.")
+                st.write(tavus_response) 

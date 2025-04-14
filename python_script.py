@@ -132,9 +132,10 @@ if resume_file:
             payload = {
                 "replica_id": "r79e1c033f",
                 "persona_id": "p9a95912",
-                "payload": {
-                    "Script": meta_script
-                }
+                "callback_url": "https://api.einstellen.ai/api/v1/webapp/candidate/transcript/create-raw-transcript",
+                "conversation_name": f"A Interview with naveen",
+                "conversational_context": meta_script,
+                "custom_greeting": "Hey naveen, nice to meet you! How are you today?"
             }
 
             response = requests.post(tavus_api, json=payload, headers=headers)

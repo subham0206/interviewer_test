@@ -97,7 +97,6 @@ def start_interview(candidate):
         return response.json()
     else:
         print(f"❌ Failed to start interview. Status Code: {response.status_code}")
-        sys.exit(1)
 
 # Resume processing
 if resume_file:

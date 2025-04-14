@@ -136,3 +136,11 @@ if resume_file:
             if tavus_response:
                 st.success("The interview video is being processed.")
                 st.write(tavus_response) 
+        
+            conversation_url = tavus_response.get("conversation_url")
+            if conversation_url:
+                st.success("✅ Your AI Interviewer video is ready!")
+                st.markdown(f"**[Click here to join the interview]({conversation_url})**")
+            else:
+                st.warning("Interview URL not found in the response.")
+

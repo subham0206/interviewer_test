@@ -87,6 +87,40 @@ def parse_resume_info(resume_text):
     except Exception as e:
         st.error("Failed to extract resume info.")
         return None
+def start_interview(candidate):
+    """Trigger Tavus API to start interview and return interview details."""
+    url = "https://tavusapi.com/v2/conversations"
+    
+    payload = {
+        "replica_id": "r79e1c033f",
+        "persona_id": "p9a95912",
+        "callback_url": "https://api.einstellen.ai/api/v1/webapp/candidate/transcript/create-raw-transcript",
+        "conversation_name": f"A Interview with {candidate}",
+        "custom_greeting": f"Hey {candidate}, nice to meet you! How are you today?",
+        "properties": {
+            "max_call_duration": 3600,
+            "participant_left_timeout": 60,
+            "participant_absent_timeout": 300,
+            "enable_recording": False,
+            "enable_transcription": True,
+            "apply_greenscreen": True,
+            "language": "english"
+        }
+    }
+    
+    headers = {
+        "x-api-key": TAVUS_API_KEY,
+        "Content-Type": "application/json"
+    }
+    
+    response = requests.post(url, json=payload, headers=headers)
+    
+    if response.status_code == 200:
+        
+        return response.json()
+    else:
+        print(f"❌ Failed to start interview. Status Code: {response.status_code}")
+        sys.exit(1)
 
 # Resume processing
 if resume_file:
@@ -116,11 +150,7 @@ if resume_file:
 
         # Generate Tavus Meta Human Video
         with st.spinner("Creating AI Interviewer video (Tavus)..."):
-            tavus_api = "https://tavusapi.com/v2/conversations"
-            headers = {
-                "Authorization": f"Bearer {TAVUS_API_KEY}",
-                "Content-Type": "application/json"
-            }
+            
 
             meta_script = f"""
             Hi {candidate_info['name']}, this is your AI interviewer.
@@ -128,21 +158,4 @@ if resume_file:
             We noticed skills like {candidate_info['skills']}.
             Let's go through some interview questions to help you prepare!
             """
-
-            payload = {
-                "replica_id": "r79e1c033f",
-                "persona_id": "p9a95912",
-                "callback_url": "https://api.einstellen.ai/api/v1/webapp/candidate/transcript/create-raw-transcript",
-                "conversation_name": f"A Interview with naveen",
-                "conversational_context": meta_script,
-                "custom_greeting": "Hey naveen, nice to meet you! How are you today?"
-            }
-
-            response = requests.post(tavus_api, json=payload, headers=headers)
-
-            if response.status_code == 201:
-                video_url = response.json().get("video_url", "URL not available")
-                st.success("AI Interviewer video generated!")
-                st.video(video_url)
-            else:
-                st.error("Failed to create Tavus video.")
+            start_interview(candidate_info['name'])

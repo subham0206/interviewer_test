@@ -116,7 +116,7 @@ if resume_file:
 
         # Generate Tavus Meta Human Video
         with st.spinner("Creating AI Interviewer video (Tavus)..."):
-            tavus_api = "https://api.tavus.io/video"
+            tavus_api = "https://tavusapi.com/v2/conversations"
             headers = {
                 "Authorization": f"Bearer {TAVUS_API_KEY}",
                 "Content-Type": "application/json"

@@ -31,7 +31,7 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Optional: Test OpenAI API connection
 try:
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": "Hello!"}]
     )
@@ -54,7 +54,7 @@ def extract_text_from_pdf(pdf_file):
 
 # Helper: OpenAI GPT call
 def gpt_response(prompt, temperature=0.7):
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4",
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature

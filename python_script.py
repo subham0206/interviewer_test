@@ -130,10 +130,20 @@ if resume_file:
             """
 
             payload = {
-                "video_template_id": "tpl_cwzAvUdq5FjDf1baGzk13",  # Replace with your own template ID
+                "replica_id": "r79e1c033f",
+                "persona_id": "p9a95912",
                 "payload": {
                     "Script": meta_script
                 }
+                "properties": {
+                "max_call_duration": 3600,
+                "participant_left_timeout": 60,
+                "participant_absent_timeout": 300,
+                "enable_recording": False,
+                "enable_transcription": True,
+                "apply_greenscreen": True,
+                "language": "english"
+            }
             }
 
             response = requests.post(tavus_api, json=payload, headers=headers)

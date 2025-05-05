@@ -69,7 +69,7 @@ def generate_technical_questions(candidate_info: Dict[str, Any]) -> list[str]:
     prompt = f"""As an expert technical interviewer, generate exactly 5 specific technical questions 
     focused on these skills: {candidate_info['skills']} and their experience as {candidate_info['job_title']}.
     
-    Return each question on a new line, numbered 1-5."""
+    Return each question on a new line."""
     questions = gpt_response(prompt).strip().split("\n")
     return [q for q in questions if q.strip()][:5]  # Ensure exactly 5 questions
 

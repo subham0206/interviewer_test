@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any
 
 # Set page config
 st.set_page_config(
-    page_title="AI Resume Analyzer & Interview Prep", 
+    page_title="AI Resume Analyzer & Interviewer", 
     layout="wide",
     page_icon="💼"
 )
@@ -129,7 +129,7 @@ def start_tavus_interview(candidate_info: Dict[str, Any], questions: list[str]):
         return None
 
 def main():
-    st.title("💻 Technical Interview Prep")
+    st.title("💻 AI Resume Analyzer & Technical Interviewer")
     
     resume_file = st.sidebar.file_uploader("📄 Upload Resume (PDF)", type=["pdf"])
     if not resume_file:

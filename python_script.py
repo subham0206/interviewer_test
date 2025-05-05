@@ -34,7 +34,7 @@ def gpt_response(prompt: str, temperature: float = 0.7) -> str:
     """Get response from OpenAI GPT model."""
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5",
+            model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=temperature
         )

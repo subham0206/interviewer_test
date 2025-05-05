@@ -129,7 +129,7 @@ def start_tavus_interview(candidate_info: Dict[str, Any], questions: list[str]):
         return None
 
 def main():
-    st.title("💻 AI-Powered Resume Analysis & Technical Interviewer")
+    st.title("💻 AI-Powered Resume Analysis & Interviewer")
     
     resume_file = st.sidebar.file_uploader("📄 Upload Resume (PDF)", type=["pdf"])
     if not resume_file:

@@ -4,7 +4,6 @@ import PyPDF2
 import json
 import requests
 from typing import Optional, Dict, Any
-from streamlit_monaco import st_monaco
 
 # Set page config
 st.set_page_config(
@@ -29,21 +28,13 @@ CODING_QUESTIONS = {
             "title": "Reverse a String",
             "question": "Write a function that reverses a string without using any built-in reverse functions.",
             "starter_code": "def reverse_string(s: str) -> str:\n    # Your code here\n    pass",
-            "difficulty": "Easy",
-            "test_cases": [
-                {"input": "'hello'", "output": "'olleh'"},
-                {"input": "'python'", "output": "'nohtyp'"}
-            ]
+            "difficulty": "Easy"
         },
         {
             "title": "Fibonacci Sequence",
             "question": "Write a function that generates the first n numbers in the Fibonacci sequence.",
             "starter_code": "def fibonacci(n: int) -> list:\n    # Your code here\n    pass",
-            "difficulty": "Medium",
-            "test_cases": [
-                {"input": "5", "output": "[0, 1, 1, 2, 3]"},
-                {"input": "8", "output": "[0, 1, 1, 2, 3, 5, 8, 13]"}
-            ]
+            "difficulty": "Medium"
         }
     ],
     "javascript": [
@@ -51,14 +42,11 @@ CODING_QUESTIONS = {
             "title": "Array Sum",
             "question": "Write a function that calculates the sum of all numbers in an array.",
             "starter_code": "function arraySum(arr) {\n    // Your code here\n}",
-            "difficulty": "Easy",
-            "test_cases": [
-                {"input": "[1, 2, 3, 4]", "output": "10"},
-                {"input": "[10, -2, 5]", "output": "13"}
-            ]
+            "difficulty": "Easy"
         }
     ]
 }
+
 
 def extract_text_from_pdf(pdf_file) -> str:
     """Extract text from uploaded PDF file."""
@@ -115,28 +103,28 @@ def generate_technical_questions(candidate_info: Dict[str, Any]) -> list[str]:
 def create_conversation_context(candidate_info: Dict[str, Any], questions: list[str]) -> str:
     """Create detailed interview context with structured flow."""
     return f"""
-You are about to conduct a video interview with {candidate_info['name']}, a professional working as {candidate_info['job_title']} with {candidate_info['experience']} of experience.
-They have expertise in {candidate_info['skills']} and has worked on projects like {candidate_info['projects']}.
-
-### Interview Flow:
-1. **Start with an Icebreaker**:
-   - "Hey {candidate_info['name']}, how are you today?"
-   - "Tell me a little about yourself and your background."
-
-2. **Discuss their Background & Experience**:
-   - "I see you studied {candidate_info['education']}. How does that inform your work today?"
-
-3. **Technical Deep Dive**:
-   - "{questions[0]}"
-   - "{questions[1]}"
-   - "{questions[2]}"
-   - "{questions[3]}"
-   - "{questions[4]}"
-
-4. **Closing Discussion**:
-   - "What are you looking for in your next role?"
-   - "Do you have any questions for me about the role/company?"
-"""
+            You are about to conduct a video interview with {candidate_info['name']}, a professional working as {candidate_info['job_title']} with {candidate_info['experience']} of experience.
+            They have expertise in {candidate_info['skills']} and has worked on projects like {candidate_info['projects']}.
+            
+            ### Interview Flow:
+            1. **Start with an Icebreaker**:
+               - "Hey {candidate_info['name']}, how are you today?"
+               - "Tell me a little about yourself and your background."
+            
+            2. **Discuss their Background & Experience**:
+               - "I see you studied {candidate_info['education']}. How does that inform your work today?"
+            
+            3. **Technical Deep Dive**:
+               - "{questions[0]}"
+               - "{questions[1]}"
+               - "{questions[2]}"
+               - "{questions[3]}"
+               - "{questions[4]}"
+            
+            4. **Closing Discussion**:
+               - "What are you looking for in your next role?"
+               - "Do you have any questions for me about the role/company?"
+            """ """
 
 def start_tavus_interview(candidate_info: Dict[str, Any], questions: list[str]):
     """Start Tavus interview with proper context."""
@@ -173,7 +161,7 @@ def start_tavus_interview(candidate_info: Dict[str, Any], questions: list[str]):
         return None
 
 def coding_test_panel():
-    """Create the coding test interface."""
+    """Create the coding test interface using Streamlit's native text_area."""
     st.subheader("🧑‍💻 Coding Assessment")
     
     # Language selection
@@ -194,12 +182,11 @@ def coding_test_panel():
     
     st.markdown(f"**Problem:** {question_data['question']}")
     
-    # Editor with Monaco
-    code = st_monaco(
+    # Use Streamlit's native text_area for code input
+    code = st.text_area(
+        "Write your code here:",
         value=question_data["starter_code"],
-        height="400px",
-        language=lang,
-        theme="vs-dark",
+        height=400,
         key=f"editor_{lang}"
     )
     
@@ -208,7 +195,7 @@ def coding_test_panel():
     with col1:
         if st.button("▶️ Run Code", use_container_width=True):
             with st.spinner("Executing code..."):
-                execute_code(code, lang, question_data["test_cases"])
+                st.session_state.console_output = f"Running {lang} code...\n\n{code}\n\n(Execution simulated)"
     with col2:
         if st.button("🧹 Reset Code", use_container_width=True):
             st.session_state[f"editor_{lang}"] = question_data["starter_code"]
@@ -221,7 +208,7 @@ def coding_test_panel():
     # Console output
     if "console_output" in st.session_state:
         st.subheader("Console Output")
-        st.code(st.session_state.console_output, language="text")
+        st.code(st.session_state.console_output, language=lang)
 
 def execute_code(code: str, language: str, test_cases: list):
     """Execute the submitted code and display results."""
@@ -292,7 +279,7 @@ def main():
                                     style="width:100%; height:600px; border:none; border-radius:8px;" 
                                     allow="camera; microphone; fullscreen">
                             </iframe>
-                            """, unsafe_allow_html=True)
+                            """""", unsafe_allow_html=True)
                         st.markdown(
                             f"🔗 [Open interview in new tab]({st.session_state.tavus_url})",
                             unsafe_allow_html=True

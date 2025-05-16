@@ -4,3 +4,4 @@ pypdf2
 pydantic
 pandas
 requests
+streamlit-monaco

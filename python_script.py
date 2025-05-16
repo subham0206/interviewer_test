@@ -260,8 +260,8 @@ def technical_questions_panel():
         st.subheader("🧠 Technical Questions")
         
         if st.session_state.tech_questions:
-            for i, question in enumerate(st.session_state.tech_questions, 1):
-                st.write(f"{i}. {question}")
+            for question in st.session_state.tech_questions:
+                st.write(question)  # Just display the question as-is
 
 def interview_panel():
     """Panel for the interview interface"""

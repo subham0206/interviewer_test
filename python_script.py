@@ -123,7 +123,15 @@ def start_tavus_interview(candidate_info: Dict[str, Any], questions: list[str]):
             headers={"x-api-key": TAVUS_API_KEY, "Content-Type": "application/json"},
             timeout=10
         )
-        return response.json() if response.status_code == 200 else None
+        
+        # Debugging: Print the full API response
+        st.write("Tavus API Response:", response.json())
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            st.error(f"API Error: {response.status_code} - {response.text}")
+            return None
     except Exception as e:
         st.error(f"Error starting interview: {str(e)}")
         return None
@@ -164,13 +172,15 @@ def main():
             if st.button("🚀 Start AI Interview"):
                 with st.spinner("Setting up interview..."):
                     tavus_response = start_tavus_interview(candidate_info, tech_questions)
+                    
                     if tavus_response and tavus_response.get("conversation_url"):
                         st.success("Interview ready! Join below:")
                         
-                        # Create a container for the interview
-                        interview_container = st.container()
+                        # Display the interview link as a fallback
+                        st.markdown(f"Interview URL: [{tavus_response['conversation_url']}]({tavus_response['conversation_url']})")
                         
-                        with interview_container:
+                        # Try embedding (may not work due to Tavus CORS policy)
+                        try:
                             st.markdown("""
                             <style>
                             .interview-iframe {
@@ -183,21 +193,18 @@ def main():
                             </style>
                             """, unsafe_allow_html=True)
                             
-                            # Embed the Tavus interview in an iframe
                             st.markdown(
                                 f'<iframe src="{tavus_response["conversation_url"]}" class="interview-iframe" allow="camera; microphone"></iframe>',
                                 unsafe_allow_html=True
                             )
-                            
-                            # Add some controls or information
-                            st.info("💡 The interview is now active in the window above. Please enable camera and microphone permissions when prompted.")
-                            
-                            # You can add additional controls here if needed
-                            if st.button("End Interview"):
-                                interview_container.empty()
-                                st.success("Interview session ended. You can review the transcript when available.")
+                        except Exception as e:
+                            st.warning("Couldn't embed interview directly. Please click the link above to join.")
+                            st.error(f"Embedding error: {str(e)}")
                     else:
-                        st.error("Failed to start interview")
+                        st.error("Failed to start interview. Please check:")
+                        st.write("- Your Tavus API key is valid")
+                        st.write("- The replica and persona IDs are correct")
+                        st.write("- The API endpoint is reachable from your server")
 
 if __name__ == "__main__":
     main()

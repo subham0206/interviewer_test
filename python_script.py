@@ -233,9 +233,24 @@ def coding_test_panel():
         st.subheader("Execution Results")
         st.code(st.session_state.console_output, language="text")
 
-def technical_questions_panel(candidate_info):
-    """Panel for displaying technical questions"""
+def candidate_profile_panel(candidate_info):
+    """Top panel showing candidate profile and technical questions"""
     with st.container(border=True):
+        st.subheader("👤 Candidate Profile & Technical Questions")
+        
+        # Candidate profile columns
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write(f"**Name:** {candidate_info['name']}")
+            st.write(f"**Education:** {candidate_info['education']}")
+        with col2:
+            st.write(f"**Experience:** {candidate_info['experience']}")
+            st.write(f"**Current Role:** {candidate_info['job_title']}")
+        st.write(f"**Skills:** {', '.join(candidate_info['skills'])}")
+        st.write(f"**Notable Projects:** {candidate_info['projects']}")
+        
+        # Technical questions section
+        st.divider()
         st.subheader("🧠 Technical Questions")
         
         if not st.session_state.tech_questions:
@@ -245,14 +260,14 @@ def technical_questions_panel(candidate_info):
         for i, question in enumerate(st.session_state.tech_questions, 1):
             st.write(f"{i}. {question}")
 
-def interview_panel(candidate_info):
+def interview_panel():
     """Panel for the interview interface"""
     with st.container(border=True):
         st.subheader("🎤 Live Interview")
         
         if st.button("Start Interview", key="start_interview"):
             with st.spinner("Setting up interview..."):
-                tavus_response = start_tavus_interview(candidate_info, st.session_state.tech_questions)
+                tavus_response = start_tavus_interview(st.session_state.candidate_info, st.session_state.tech_questions)
                 if tavus_response:
                     st.session_state.tavus_url = tavus_response['conversation_url']
                     st.session_state.show_interview = True
@@ -297,29 +312,20 @@ def main():
         candidate_info = parse_resume_info(resume_text)
         if not candidate_info:
             return
+        
+        # Store candidate info in session state
+        st.session_state.candidate_info = candidate_info
 
-    # Candidate profile
-    st.subheader("👤 Candidate Profile")
-    cols = st.columns(2)
-    with cols[0]:
-        st.write(f"**Name:** {candidate_info['name']}")
-        st.write(f"**Education:** {candidate_info['education']}")
-    with cols[1]:
-        st.write(f"**Experience:** {candidate_info['experience']}")
-        st.write(f"**Current Role:** {candidate_info['job_title']}")
-    st.write(f"**Skills:** {', '.join(candidate_info['skills'])}")
-    st.write(f"**Notable Projects:** {candidate_info['projects']}")
-
-    # Three independent panels
-    col1, col2, col3 = st.columns([1,1,1.5], gap="large")
+    # Top panel - Candidate Profile & Technical Questions (100% width)
+    candidate_profile_panel(st.session_state.candidate_info)
     
-    with col1:
-        technical_questions_panel(candidate_info)
+    # Bottom panels - Interview and Coding (70:30 ratio)
+    col_interview, col_coding = st.columns([7, 3], gap="large")
     
-    with col2:
-        interview_panel(candidate_info)
+    with col_interview:
+        interview_panel()
     
-    with col3:
+    with col_coding:
         coding_panel()
 
 if __name__ == "__main__":

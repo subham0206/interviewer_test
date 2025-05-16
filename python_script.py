@@ -165,8 +165,37 @@ def main():
                 with st.spinner("Setting up interview..."):
                     tavus_response = start_tavus_interview(candidate_info, tech_questions)
                     if tavus_response and tavus_response.get("conversation_url"):
-                        st.success("Interview ready!")
-                        st.markdown(f"[Join Interview]({tavus_response['conversation_url']})")
+                        st.success("Interview ready! Join below:")
+                        
+                        # Create a container for the interview
+                        interview_container = st.container()
+                        
+                        with interview_container:
+                            st.markdown("""
+                            <style>
+                            .interview-iframe {
+                                width: 100%;
+                                height: 600px;
+                                border: 1px solid #ccc;
+                                border-radius: 10px;
+                                margin-top: 20px;
+                            }
+                            </style>
+                            """, unsafe_allow_html=True)
+                            
+                            # Embed the Tavus interview in an iframe
+                            st.markdown(
+                                f'<iframe src="{tavus_response["conversation_url"]}" class="interview-iframe" allow="camera; microphone"></iframe>',
+                                unsafe_allow_html=True
+                            )
+                            
+                            # Add some controls or information
+                            st.info("💡 The interview is now active in the window above. Please enable camera and microphone permissions when prompted.")
+                            
+                            # You can add additional controls here if needed
+                            if st.button("End Interview"):
+                                interview_container.empty()
+                                st.success("Interview session ended. You can review the transcript when available.")
                     else:
                         st.error("Failed to start interview")
 

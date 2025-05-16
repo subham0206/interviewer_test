@@ -49,11 +49,15 @@ CODING_QUESTIONS = {
     ]
 }
 
-# Initialize session state
+# Initialize all session state variables
+if 'candidate_info' not in st.session_state:
+    st.session_state.candidate_info = None
 if 'tech_questions' not in st.session_state:
     st.session_state.tech_questions = []
 if 'tavus_url' not in st.session_state:
     st.session_state.tavus_url = ""
+if 'conversation_id' not in st.session_state:
+    st.session_state.conversation_id = ""
 if 'show_interview' not in st.session_state:
     st.session_state.show_interview = False
 if 'show_coding' not in st.session_state:
@@ -233,32 +237,31 @@ def coding_test_panel():
         st.subheader("Execution Results")
         st.code(st.session_state.console_output, language="text")
 
-def candidate_profile_panel(candidate_info):
-    """Top panel showing candidate profile and technical questions"""
+def candidate_profile_panel():
+    """Top panel showing candidate profile that won't refresh"""
     with st.container(border=True):
-        st.subheader("👤 Candidate Profile & Technical Questions")
-        
-        # Candidate profile columns
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write(f"**Name:** {candidate_info['name']}")
-            st.write(f"**Education:** {candidate_info['education']}")
-        with col2:
-            st.write(f"**Experience:** {candidate_info['experience']}")
-            st.write(f"**Current Role:** {candidate_info['job_title']}")
-        st.write(f"**Skills:** {', '.join(candidate_info['skills'])}")
-        st.write(f"**Notable Projects:** {candidate_info['projects']}")
-        
-        # Technical questions section
-        st.divider()
+        if st.session_state.candidate_info:
+            st.subheader("👤 Candidate Profile")
+            
+            # Candidate profile columns
+            col1, col2 = st.columns(2)
+            with col1:
+                st.write(f"**Name:** {st.session_state.candidate_info['name']}")
+                st.write(f"**Education:** {st.session_state.candidate_info['education']}")
+            with col2:
+                st.write(f"**Experience:** {st.session_state.candidate_info['experience']}")
+                st.write(f"**Current Role:** {st.session_state.candidate_info['job_title']}")
+            st.write(f"**Skills:** {', '.join(st.session_state.candidate_info['skills'])}")
+            st.write(f"**Notable Projects:** {st.session_state.candidate_info['projects']}")
+
+def technical_questions_panel():
+    """Panel for technical questions that won't refresh"""
+    with st.container(border=True):
         st.subheader("🧠 Technical Questions")
         
-        if not st.session_state.tech_questions:
-            with st.spinner("Generating questions..."):
-                st.session_state.tech_questions = generate_technical_questions(candidate_info)
-        
-        for i, question in enumerate(st.session_state.tech_questions, 1):
-            st.write(f"{i}. {question}")
+        if st.session_state.tech_questions:
+            for i, question in enumerate(st.session_state.tech_questions, 1):
+                st.write(f"{i}. {question}")
 
 def interview_panel():
     """Panel for the interview interface"""
@@ -270,7 +273,7 @@ def interview_panel():
                 tavus_response = start_tavus_interview(st.session_state.candidate_info, st.session_state.tech_questions)
                 if tavus_response:
                     st.session_state.tavus_url = tavus_response['conversation_url']
-                    st.session_state.conversation_id = tavus_response['conversation_url'].split('/')[-1]  # Extract conversation ID
+                    st.session_state.conversation_id = tavus_response['conversation_url'].split('/')[-1]
                     st.session_state.show_interview = True
         
         if st.session_state.show_interview and st.session_state.tavus_url:
@@ -284,7 +287,6 @@ def interview_panel():
             if st.button("End Interview", key="end_interview"):
                 with st.spinner("Ending interview..."):
                     try:
-                        # End the Tavus conversation
                         url = f"https://tavusapi.com/v2/conversations/{st.session_state.conversation_id}/end"
                         headers = {"x-api-key": TAVUS_API_KEY}
                         response = requests.post(url, headers=headers)
@@ -293,11 +295,9 @@ def interview_panel():
                             st.success("Interview ended successfully!")
                         else:
                             st.error(f"Failed to end interview: {response.text}")
-                        
                     except Exception as e:
                         st.error(f"Error ending interview: {str(e)}")
                     
-                    # Clear interview state
                     st.session_state.show_interview = False
                     st.session_state.tavus_url = ""
                     st.session_state.conversation_id = ""
@@ -326,20 +326,28 @@ def main():
         st.info("Please upload your resume to begin")
         return
 
-    with st.spinner("Analyzing resume..."):
-        resume_text = extract_text_from_pdf(resume_file)
-        candidate_info = parse_resume_info(resume_text)
-        if not candidate_info:
-            return
-        
-        # Store candidate info in session state
-        st.session_state.candidate_info = candidate_info
+    # Only analyze resume if we haven't already
+    if st.session_state.candidate_info is None:
+        with st.spinner("Analyzing resume..."):
+            resume_text = extract_text_from_pdf(resume_file)
+            candidate_info = parse_resume_info(resume_text)
+            if candidate_info:
+                st.session_state.candidate_info = candidate_info
+                st.session_state.tech_questions = generate_technical_questions(candidate_info)
+            else:
+                return
 
-    # Top panel - Candidate Profile & Technical Questions (100% width)
-    candidate_profile_panel(st.session_state.candidate_info)
+    # Top panel - Candidate Profile & Technical Questions
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        candidate_profile_panel()
+    with col2:
+        technical_questions_panel()
     
-    # Bottom panels - Interview and Coding (60:40 ratio)
-    col_interview, col_coding = st.columns([6, 4], gap="large")
+    st.divider()
+    
+    # Bottom panels - Interview and Coding (70:30 ratio)
+    col_interview, col_coding = st.columns([7, 3], gap="large")
     
     with col_interview:
         interview_panel()

@@ -338,8 +338,8 @@ def main():
     # Top panel - Candidate Profile & Technical Questions (100% width)
     candidate_profile_panel(st.session_state.candidate_info)
     
-    # Bottom panels - Interview and Coding (70:30 ratio)
-    col_interview, col_coding = st.columns([7, 3], gap="large")
+    # Bottom panels - Interview and Coding (60:40 ratio)
+    col_interview, col_coding = st.columns([6, 4], gap="large")
     
     with col_interview:
         interview_panel()

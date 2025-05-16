@@ -11,7 +11,7 @@ from typing import Optional, Dict, Any
 st.set_page_config(
     page_title="RecruiterAI by GSPANN", 
     layout="wide",
-    page_icon="💻"
+    page_icon="🤖"
 )
 
 # Initialize clients
@@ -318,7 +318,7 @@ def coding_panel():
                 st.session_state.show_coding = False
 
 def main():
-    st.title("💻 RecruiterAI by GSPANN")
+    st.title("🤖 RecruiterAI by GSPANN")
     
     # Resume upload and analysis
     resume_file = st.sidebar.file_uploader("📄 Upload Resume (PDF)", type=["pdf"])

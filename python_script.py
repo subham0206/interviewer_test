@@ -3,6 +3,8 @@ from openai import OpenAI
 import PyPDF2
 import json
 import requests
+from io import StringIO
+import sys
 from typing import Optional, Dict, Any
 
 # Set page config
@@ -28,24 +30,36 @@ CODING_QUESTIONS = {
             "title": "Reverse a String",
             "question": "Write a function that reverses a string without using any built-in reverse functions.",
             "starter_code": "def reverse_string(s: str) -> str:\n    # Your code here\n    pass",
-            "difficulty": "Easy"
+            "difficulty": "Easy",
+            "test_cases": [
+                {"input": "'hello'", "output": "'olleh'"},
+                {"input": "'python'", "output": "'nohtyp'"}
+            ]
         },
         {
             "title": "Fibonacci Sequence",
             "question": "Write a function that generates the first n numbers in the Fibonacci sequence.",
             "starter_code": "def fibonacci(n: int) -> list:\n    # Your code here\n    pass",
-            "difficulty": "Medium"
-        }
-    ],
-    "javascript": [
-        {
-            "title": "Array Sum",
-            "question": "Write a function that calculates the sum of all numbers in an array.",
-            "starter_code": "function arraySum(arr) {\n    // Your code here\n}",
-            "difficulty": "Easy"
+            "difficulty": "Medium",
+            "test_cases": [
+                {"input": "5", "output": "[0, 1, 1, 2, 3]"},
+                {"input": "8", "output": "[0, 1, 1, 2, 3, 5, 8, 13]"}
+            ]
         }
     ]
 }
+
+# Initialize session state
+if 'tech_questions' not in st.session_state:
+    st.session_state.tech_questions = []
+if 'tavus_url' not in st.session_state:
+    st.session_state.tavus_url = ""
+if 'show_interview' not in st.session_state:
+    st.session_state.show_interview = False
+if 'show_coding' not in st.session_state:
+    st.session_state.show_coding = False
+if 'console_output' not in st.session_state:
+    st.session_state.console_output = ""
 
 def extract_text_from_pdf(pdf_file) -> str:
     """Extract text from uploaded PDF file."""
@@ -166,7 +180,7 @@ def coding_test_panel():
     # Language selection
     lang = st.selectbox(
         "Select Programming Language",
-        options=["python"],  # Currently only supporting Python
+        options=["python"],
         index=0,
         key="coding_lang"
     )
@@ -181,68 +195,98 @@ def coding_test_panel():
     
     st.markdown(f"**Problem:** {question_data['question']}")
     
-    # Use Streamlit's native text_area for code input
+    # Code editor
     code = st.text_area(
         "Write your code here:",
         value=question_data["starter_code"],
-        height=400,
+        height=300,
         key=f"editor_{lang}"
     )
     
     # Execution buttons
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button("▶️ Run Code", use_container_width=True):
-            with st.spinner("Executing code..."):
-                try:
-                    # Create a dictionary to capture the output
-                    from io import StringIO
-                    import sys
-                    
-                    # Redirect stdout
-                    old_stdout = sys.stdout
-                    sys.stdout = mystdout = StringIO()
-                    
-                    # Execute the code safely
-                    exec_globals = {}
-                    exec(code, exec_globals)
-                    
-                    # Reset stdout
-                    sys.stdout = old_stdout
-                    
-                    # Get the output
-                    output = mystdout.getvalue()
-                    
-                    st.session_state.console_output = f"=== Execution Output ===\n{output}"
-                    
-                except Exception as e:
-                    st.session_state.console_output = f"=== Error ===\n{str(e)}"
+    if st.button("▶️ Run Code", key="run_code"):
+        with st.spinner("Executing code..."):
+            try:
+                old_stdout = sys.stdout
+                sys.stdout = mystdout = StringIO()
+                
+                exec_globals = {}
+                exec(code, exec_globals)
+                
+                sys.stdout = old_stdout
+                output = mystdout.getvalue()
+                
+                st.session_state.console_output = f"=== Execution Output ===\n{output}"
+            except Exception as e:
+                st.session_state.console_output = f"=== Error ===\n{str(e)}"
     
-    with col2:
-        if st.button("🧹 Reset Code", use_container_width=True):
-            st.session_state[f"editor_{lang}"] = question_data["starter_code"]
-            st.rerun()
+    if st.button("🧹 Reset Code", key="reset_code"):
+        st.session_state[f"editor_{lang}"] = question_data["starter_code"]
+        st.session_state.console_output = ""
     
-    with col3:
-        if st.button("📋 Submit Solution", use_container_width=True):
-            st.success("✅ Solution submitted!")
-            st.balloons()
+    if st.button("📋 Submit Solution", key="submit_code"):
+        st.success("✅ Solution submitted!")
+        st.balloons()
     
     # Console output
-    if "console_output" in st.session_state:
+    if st.session_state.console_output:
         st.subheader("Execution Results")
         st.code(st.session_state.console_output, language="text")
+
+def technical_questions_panel(candidate_info):
+    """Panel for displaying technical questions"""
+    with st.container(border=True):
+        st.subheader("🧠 Technical Questions")
         
-        # Show test case results (simulated for now)
-        st.subheader("Test Case Results")
-        for i, test_case in enumerate(question_data.get("test_cases", []), 1):
-            st.write(f"Test Case {i}:")
-            st.code(f"Input: {test_case['input']}\nExpected: {test_case['output']}")
-            st.write("Status: ❌ Not validated (would compare output in real system)")
+        if not st.session_state.tech_questions:
+            with st.spinner("Generating questions..."):
+                st.session_state.tech_questions = generate_technical_questions(candidate_info)
+        
+        for i, question in enumerate(st.session_state.tech_questions, 1):
+            st.write(f"{i}. {question}")
+
+def interview_panel(candidate_info):
+    """Panel for the interview interface"""
+    with st.container(border=True):
+        st.subheader("🎤 Live Interview")
+        
+        if st.button("Start Interview", key="start_interview"):
+            with st.spinner("Setting up interview..."):
+                tavus_response = start_tavus_interview(candidate_info, st.session_state.tech_questions)
+                if tavus_response:
+                    st.session_state.tavus_url = tavus_response['conversation_url']
+                    st.session_state.show_interview = True
+        
+        if st.session_state.show_interview and st.session_state.tavus_url:
+            st.markdown(f"""
+                <iframe src="{st.session_state.tavus_url}" 
+                        style="width:100%; height:500px; border:none; border-radius:8px;" 
+                        allow="camera; microphone">
+                </iframe>
+                """, unsafe_allow_html=True)
+            
+            if st.button("End Interview", key="end_interview"):
+                st.session_state.show_interview = False
+                st.session_state.tavus_url = ""
+
+def coding_panel():
+    """Panel for the coding test"""
+    with st.container(border=True):
+        st.subheader("💻 Coding Test")
+        
+        if st.button("Start Coding Test", key="start_coding"):
+            st.session_state.show_coding = True
+        
+        if st.session_state.show_coding:
+            coding_test_panel()
+            
+            if st.button("Close Coding Test", key="close_coding"):
+                st.session_state.show_coding = False
 
 def main():
     st.title("💻 AI Technical Interview Platform")
     
+    # Resume upload and analysis
     resume_file = st.sidebar.file_uploader("📄 Upload Resume (PDF)", type=["pdf"])
     if not resume_file:
         st.info("Please upload your resume to begin")
@@ -254,6 +298,7 @@ def main():
         if not candidate_info:
             return
 
+    # Candidate profile
     st.subheader("👤 Candidate Profile")
     cols = st.columns(2)
     with cols[0]:
@@ -265,45 +310,17 @@ def main():
     st.write(f"**Skills:** {', '.join(candidate_info['skills'])}")
     st.write(f"**Notable Projects:** {candidate_info['projects']}")
 
-    with st.spinner("Preparing technical questions..."):
-        tech_questions = generate_technical_questions(candidate_info)
-        
-        if tech_questions:
-            st.subheader("🧠 Technical Interview Questions")
-            for i, question in enumerate(tech_questions, 1):
-                st.write(f"{i}. {question}")
-            
-            # Separate buttons for interview and coding test
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("🎤 Start Interview", type="primary", use_container_width=True):
-                    with st.spinner("Setting up interview..."):
-                        tavus_response = start_tavus_interview(candidate_info, tech_questions)
-                        
-                        if tavus_response and tavus_response.get("conversation_url"):
-                            st.session_state.tavus_url = tavus_response['conversation_url']
-                            st.session_state.show_interview = True
-            
-            with col2:
-                if st.button("💻 Start Coding Test", type="secondary", use_container_width=True):
-                    st.session_state.show_coding = True
-            
-            # Display panels based on which button was clicked
-            if st.session_state.get('show_interview'):
-                st.success("🎉 Interview ready!")
-                st.markdown(f"""
-                    <iframe src="{st.session_state.tavus_url}" 
-                            style="width:100%; height:600px; border:none; border-radius:8px;" 
-                            allow="camera; microphone; fullscreen">
-                    </iframe>
-                    """, unsafe_allow_html=True)
-                st.markdown(
-                    f"🔗 [Open interview in new tab]({st.session_state.tavus_url})",
-                    unsafe_allow_html=True
-                )
-            
-            if st.session_state.get('show_coding'):
-                coding_test_panel()
+    # Three independent panels
+    col1, col2, col3 = st.columns([1,1,1.5], gap="large")
+    
+    with col1:
+        technical_questions_panel(candidate_info)
+    
+    with col2:
+        interview_panel(candidate_info)
+    
+    with col3:
+        coding_panel()
 
 if __name__ == "__main__":
     main()

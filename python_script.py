@@ -274,12 +274,15 @@ def main():
                     
                     with col_interview:
                         st.subheader("🎤 Live Interview")
-                        st.markdown(f"""
+                        st.markdown(
+                            f"""
                             <iframe src="{st.session_state.tavus_url}" 
                                     style="width:100%; height:600px; border:none; border-radius:8px;" 
                                     allow="camera; microphone; fullscreen">
                             </iframe>
-                            """, unsafe_allow_html=True)
+                            """,
+                            unsafe_allow_html=True
+                        )
                         st.markdown(
                             f"🔗 [Open interview in new tab]({st.session_state.tavus_url})",
                             unsafe_allow_html=True
@@ -290,3 +293,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -160,13 +160,13 @@ def start_tavus_interview(candidate_info: Dict[str, Any], questions: list[str]):
         return None
 
 def coding_test_panel():
-    """Create the coding test interface."""
+    """Create the coding test interface with actual code execution."""
     st.subheader("🧑‍💻 Coding Assessment")
     
     # Language selection
     lang = st.selectbox(
         "Select Programming Language",
-        options=list(CODING_QUESTIONS.keys()),
+        options=["python"],  # Currently only supporting Python
         index=0,
         key="coding_lang"
     )
@@ -194,11 +194,35 @@ def coding_test_panel():
     with col1:
         if st.button("▶️ Run Code", use_container_width=True):
             with st.spinner("Executing code..."):
-                st.session_state.console_output = f"Running {lang} code...\n\n{code}\n\n(Execution simulated)"
+                try:
+                    # Create a dictionary to capture the output
+                    from io import StringIO
+                    import sys
+                    
+                    # Redirect stdout
+                    old_stdout = sys.stdout
+                    sys.stdout = mystdout = StringIO()
+                    
+                    # Execute the code safely
+                    exec_globals = {}
+                    exec(code, exec_globals)
+                    
+                    # Reset stdout
+                    sys.stdout = old_stdout
+                    
+                    # Get the output
+                    output = mystdout.getvalue()
+                    
+                    st.session_state.console_output = f"=== Execution Output ===\n{output}"
+                    
+                except Exception as e:
+                    st.session_state.console_output = f"=== Error ===\n{str(e)}"
+    
     with col2:
         if st.button("🧹 Reset Code", use_container_width=True):
             st.session_state[f"editor_{lang}"] = question_data["starter_code"]
             st.rerun()
+    
     with col3:
         if st.button("📋 Submit Solution", use_container_width=True):
             st.success("✅ Solution submitted!")
@@ -206,8 +230,15 @@ def coding_test_panel():
     
     # Console output
     if "console_output" in st.session_state:
-        st.subheader("Console Output")
-        st.code(st.session_state.console_output, language=lang)
+        st.subheader("Execution Results")
+        st.code(st.session_state.console_output, language="text")
+        
+        # Show test case results (simulated for now)
+        st.subheader("Test Case Results")
+        for i, test_case in enumerate(question_data.get("test_cases", []), 1):
+            st.write(f"Test Case {i}:")
+            st.code(f"Input: {test_case['input']}\nExpected: {test_case['output']}")
+            st.write("Status: ❌ Not validated (would compare output in real system)")
 
 def main():
     st.title("💻 AI Technical Interview Platform")

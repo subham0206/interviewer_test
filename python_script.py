@@ -44,16 +44,6 @@ CODING_QUESTIONS = {
                 {"input": "5", "output": "[0, 1, 1, 2, 3]"},
                 {"input": "8", "output": "[0, 1, 1, 2, 3, 5, 8, 13]"}
             ]
-        },
-        {
-            "title": "Two Sum",
-            "question": "Given an array of integers and a target, return indices of the two numbers that add up to the target.",
-            "starter_code": "def two_sum(nums: list, target: int) -> list:\n    # Your code here\n    pass",
-            "difficulty": "Medium",
-            "test_cases": [
-                {"input": "[2,7,11,15], 9", "output": "[0, 1]"},
-                {"input": "[3,2,4], 6", "output": "[1, 2]"}
-            ]
         }
     ],
     "javascript": [
@@ -66,35 +56,9 @@ CODING_QUESTIONS = {
                 {"input": "[1, 2, 3, 4]", "output": "10"},
                 {"input": "[10, -2, 5]", "output": "13"}
             ]
-        },
-        {
-            "title": "Palindrome Check",
-            "question": "Write a function that checks if a string is a palindrome.",
-            "starter_code": "function isPalindrome(str) {\n    // Your code here\n}",
-            "difficulty": "Medium",
-            "test_cases": [
-                {"input": "'racecar'", "output": "true"},
-                {"input": "'hello'", "output": "false"}
-            ]
         }
     ]
 }
-
-def show_credit_status():
-    """Display remaining Tavus credits in sidebar."""
-    try:
-        response = requests.get(
-            "https://tavusapi.com/v2/account",
-            headers={"x-api-key": TAVUS_API_KEY},
-            timeout=5
-        )
-        if response.status_code == 200:
-            credits = response.json().get('remaining_credits', 'unknown')
-            st.sidebar.metric("🎟️ Tavus Credits", credits)
-        else:
-            st.sidebar.warning("⚠️ Couldn't fetch credit status")
-    except Exception as e:
-        st.sidebar.warning(f"⚠️ Credit check failed: {str(e)}")
 
 def extract_text_from_pdf(pdf_file) -> str:
     """Extract text from uploaded PDF file."""
@@ -146,7 +110,7 @@ def generate_technical_questions(candidate_info: Dict[str, Any]) -> list[str]:
     
     Return each question on a new line."""
     questions = gpt_response(prompt).strip().split("\n")
-    return [q for q in questions if q.strip()][:5]  # Ensure exactly 5 questions
+    return [q for q in questions if q.strip()][:5]
 
 def create_conversation_context(candidate_info: Dict[str, Any], questions: list[str]) -> str:
     """Create detailed interview context with structured flow."""
@@ -201,11 +165,8 @@ def start_tavus_interview(candidate_info: Dict[str, Any], questions: list[str]):
         
         if response.status_code == 200:
             return response.json()
-        elif response.status_code == 402:
-            st.error("⚠️ Out of Tavus conversational credits. Please purchase more credits.")
-            return None
         else:
-            st.error(f"API Error: {response.status_code} - {response.text}")
+            st.error(f"Failed to start interview: {response.status_code} - {response.text}")
             return None
     except Exception as e:
         st.error(f"Error starting interview: {str(e)}")
@@ -254,26 +215,22 @@ def coding_test_panel():
             st.rerun()
     with col3:
         if st.button("📋 Submit Solution", use_container_width=True):
-            st.success("✅ Solution submitted! The interviewer has been notified.")
+            st.success("✅ Solution submitted!")
             st.balloons()
     
-    # Console output area
+    # Console output
     if "console_output" in st.session_state:
         st.subheader("Console Output")
         st.code(st.session_state.console_output, language="text")
 
 def execute_code(code: str, language: str, test_cases: list):
     """Execute the submitted code and display results."""
-    # In a real implementation, you would use a code execution API
-    # For demo purposes, we'll simulate execution
-    
     output = []
     output.append(f"Running {language} code...\n")
     output.append("=== Code Submitted ===")
     output.append(code)
     output.append("\n=== Test Results ===")
     
-    # Simulate test case execution
     for i, case in enumerate(test_cases, 1):
         output.append(f"\nTest Case {i}:")
         output.append(f"Input: {case['input']}")
@@ -285,7 +242,6 @@ def execute_code(code: str, language: str, test_cases: list):
 
 def main():
     st.title("💻 AI Technical Interview Platform")
-    show_credit_status()
     
     resume_file = st.sidebar.file_uploader("📄 Upload Resume (PDF)", type=["pdf"])
     if not resume_file:
@@ -322,38 +278,28 @@ def main():
                     tavus_response = start_tavus_interview(candidate_info, tech_questions)
                     
                     if tavus_response and tavus_response.get("conversation_url"):
-                        st.success("🎉 Interview ready!")
-                        
-                        # Create two columns for interview and coding test
-                        col_interview, col_coding = st.columns([1, 1], gap="large")
-                        
-                        with col_interview:
-                            st.subheader("🎤 Live Interview")
-                            st.markdown("""
-                                <style>
-                                .interview-iframe {
-                                    width: 100%;
-                                    height: 600px;
-                                    border: none;
-                                    border-radius: 8px;
-                                }
-                                </style>
-                                <iframe src="{url}" 
-                                        class="interview-iframe" 
-                                        allow="camera; microphone; fullscreen">
-                                </iframe>
-                                """.format(url=tavus_response['conversation_url']),
-                                unsafe_allow_html=True
-                            )
-                            st.markdown(
-                                f"🔗 [Open interview in new tab]({tavus_response['conversation_url']})",
-                                unsafe_allow_html=True
-                            )
-                        
-                        with col_coding:
-                            coding_test_panel()
-                    else:
-                        st.error("Failed to start interview. Please check your Tavus configuration.")
+                        st.session_state.tavus_url = tavus_response['conversation_url']
+                        st.session_state.show_interview = True
+                
+                if st.session_state.get('show_interview'):
+                    st.success("🎉 Interview ready!")
+                    col_interview, col_coding = st.columns([1, 1], gap="large")
+                    
+                    with col_interview:
+                        st.subheader("🎤 Live Interview")
+                        st.markdown(f"""
+                            <iframe src="{st.session_state.tavus_url}" 
+                                    style="width:100%; height:600px; border:none; border-radius:8px;" 
+                                    allow="camera; microphone; fullscreen">
+                            </iframe>
+                            """, unsafe_allow_html=True)
+                        st.markdown(
+                            f"🔗 [Open interview in new tab]({st.session_state.tavus_url})",
+                            unsafe_allow_html=True
+                        )
+                    
+                    with col_coding:
+                        coding_test_panel()
 
 if __name__ == "__main__":
     main()

@@ -161,7 +161,7 @@ def start_tavus_interview(candidate_info: Dict[str, Any], questions: list[str]):
         return None
 
 def coding_test_panel():
-    """Create the coding test interface using Streamlit's native text_area."""
+    """Create the coding test interface using Streamlit native text_area."""
     st.subheader("🧑‍💻 Coding Assessment")
     
     # Language selection

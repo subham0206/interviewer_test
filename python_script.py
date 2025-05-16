@@ -270,6 +270,7 @@ def interview_panel():
                 tavus_response = start_tavus_interview(st.session_state.candidate_info, st.session_state.tech_questions)
                 if tavus_response:
                     st.session_state.tavus_url = tavus_response['conversation_url']
+                    st.session_state.conversation_id = tavus_response['conversation_url'].split('/')[-1]  # Extract conversation ID
                     st.session_state.show_interview = True
         
         if st.session_state.show_interview and st.session_state.tavus_url:
@@ -281,8 +282,26 @@ def interview_panel():
                 """, unsafe_allow_html=True)
             
             if st.button("End Interview", key="end_interview"):
-                st.session_state.show_interview = False
-                st.session_state.tavus_url = ""
+                with st.spinner("Ending interview..."):
+                    try:
+                        # End the Tavus conversation
+                        url = f"https://tavusapi.com/v2/conversations/{st.session_state.conversation_id}/end"
+                        headers = {"x-api-key": TAVUS_API_KEY}
+                        response = requests.post(url, headers=headers)
+                        
+                        if response.status_code == 200:
+                            st.success("Interview ended successfully!")
+                        else:
+                            st.error(f"Failed to end interview: {response.text}")
+                        
+                    except Exception as e:
+                        st.error(f"Error ending interview: {str(e)}")
+                    
+                    # Clear interview state
+                    st.session_state.show_interview = False
+                    st.session_state.tavus_url = ""
+                    st.session_state.conversation_id = ""
+                    st.rerun()
 
 def coding_panel():
     """Panel for the coding test"""

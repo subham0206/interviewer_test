@@ -47,7 +47,6 @@ CODING_QUESTIONS = {
     ]
 }
 
-
 def extract_text_from_pdf(pdf_file) -> str:
     """Extract text from uploaded PDF file."""
     try:
@@ -103,28 +102,28 @@ def generate_technical_questions(candidate_info: Dict[str, Any]) -> list[str]:
 def create_conversation_context(candidate_info: Dict[str, Any], questions: list[str]) -> str:
     """Create detailed interview context with structured flow."""
     return f"""
-            You are about to conduct a video interview with {candidate_info['name']}, a professional working as {candidate_info['job_title']} with {candidate_info['experience']} of experience.
-            They have expertise in {candidate_info['skills']} and has worked on projects like {candidate_info['projects']}.
-            
-            ### Interview Flow:
-            1. **Start with an Icebreaker**:
-               - "Hey {candidate_info['name']}, how are you today?"
-               - "Tell me a little about yourself and your background."
-            
-            2. **Discuss their Background & Experience**:
-               - "I see you studied {candidate_info['education']}. How does that inform your work today?"
-            
-            3. **Technical Deep Dive**:
-               - "{questions[0]}"
-               - "{questions[1]}"
-               - "{questions[2]}"
-               - "{questions[3]}"
-               - "{questions[4]}"
-            
-            4. **Closing Discussion**:
-               - "What are you looking for in your next role?"
-               - "Do you have any questions for me about the role/company?"
-            """
+You are about to conduct a video interview with {candidate_info['name']}, a professional working as {candidate_info['job_title']} with {candidate_info['experience']} of experience.
+They have expertise in {candidate_info['skills']} and has worked on projects like {candidate_info['projects']}.
+
+### Interview Flow:
+1. **Start with an Icebreaker**:
+   - "Hey {candidate_info['name']}, how are you today?"
+   - "Tell me a little about yourself and your background."
+
+2. **Discuss their Background & Experience**:
+   - "I see you studied {candidate_info['education']}. How does that inform your work today?"
+
+3. **Technical Deep Dive**:
+   - "{questions[0]}"
+   - "{questions[1]}"
+   - "{questions[2]}"
+   - "{questions[3]}"
+   - "{questions[4]}"
+
+4. **Closing Discussion**:
+   - "What are you looking for in your next role?"
+   - "Do you have any questions for me about the role/company?"
+"""
 
 def start_tavus_interview(candidate_info: Dict[str, Any], questions: list[str]):
     """Start Tavus interview with proper context."""
@@ -161,7 +160,7 @@ def start_tavus_interview(candidate_info: Dict[str, Any], questions: list[str]):
         return None
 
 def coding_test_panel():
-    """Create the coding test interface using Streamlit native text_area."""
+    """Create the coding test interface."""
     st.subheader("🧑‍💻 Coding Assessment")
     
     # Language selection
@@ -210,23 +209,6 @@ def coding_test_panel():
         st.subheader("Console Output")
         st.code(st.session_state.console_output, language=lang)
 
-def execute_code(code: str, language: str, test_cases: list):
-    """Execute the submitted code and display results."""
-    output = []
-    output.append(f"Running {language} code...\n")
-    output.append("=== Code Submitted ===")
-    output.append(code)
-    output.append("\n=== Test Results ===")
-    
-    for i, case in enumerate(test_cases, 1):
-        output.append(f"\nTest Case {i}:")
-        output.append(f"Input: {case['input']}")
-        output.append(f"Expected: {case['output']}")
-        output.append("Status: ✅ Passed (simulated)")
-    
-    output.append("\nAll test cases passed! 🎉")
-    st.session_state.console_output = "\n".join(output)
-
 def main():
     st.title("💻 AI Technical Interview Platform")
     
@@ -260,37 +242,37 @@ def main():
             for i, question in enumerate(tech_questions, 1):
                 st.write(f"{i}. {question}")
             
-            if st.button("🚀 Start AI Interview", type="primary"):
-                with st.spinner("Setting up interview..."):
-                    tavus_response = start_tavus_interview(candidate_info, tech_questions)
-                    
-                    if tavus_response and tavus_response.get("conversation_url"):
-                        st.session_state.tavus_url = tavus_response['conversation_url']
-                        st.session_state.show_interview = True
-                
-                if st.session_state.get('show_interview'):
-                    st.success("🎉 Interview ready!")
-                    col_interview, col_coding = st.columns([1, 1], gap="large")
-                    
-                    with col_interview:
-                        st.subheader("🎤 Live Interview")
-                        st.markdown(
-                            f"""
-                            <iframe src="{st.session_state.tavus_url}" 
-                                    style="width:100%; height:600px; border:none; border-radius:8px;" 
-                                    allow="camera; microphone; fullscreen">
-                            </iframe>
-                            """,
-                            unsafe_allow_html=True
-                        )
-                        st.markdown(
-                            f"🔗 [Open interview in new tab]({st.session_state.tavus_url})",
-                            unsafe_allow_html=True
-                        )
-                    
-                    with col_coding:
-                        coding_test_panel()
+            # Separate buttons for interview and coding test
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("🎤 Start Interview", type="primary", use_container_width=True):
+                    with st.spinner("Setting up interview..."):
+                        tavus_response = start_tavus_interview(candidate_info, tech_questions)
+                        
+                        if tavus_response and tavus_response.get("conversation_url"):
+                            st.session_state.tavus_url = tavus_response['conversation_url']
+                            st.session_state.show_interview = True
+            
+            with col2:
+                if st.button("💻 Start Coding Test", type="secondary", use_container_width=True):
+                    st.session_state.show_coding = True
+            
+            # Display panels based on which button was clicked
+            if st.session_state.get('show_interview'):
+                st.success("🎉 Interview ready!")
+                st.markdown(f"""
+                    <iframe src="{st.session_state.tavus_url}" 
+                            style="width:100%; height:600px; border:none; border-radius:8px;" 
+                            allow="camera; microphone; fullscreen">
+                    </iframe>
+                    """, unsafe_allow_html=True)
+                st.markdown(
+                    f"🔗 [Open interview in new tab]({st.session_state.tavus_url})",
+                    unsafe_allow_html=True
+                )
+            
+            if st.session_state.get('show_coding'):
+                coding_test_panel()
 
 if __name__ == "__main__":
     main()
-

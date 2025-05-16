@@ -9,7 +9,7 @@ from typing import Optional, Dict, Any
 
 # Set page config
 st.set_page_config(
-    page_title="AI Tech Interview Platform", 
+    page_title="RecruiterAI by GSPANN", 
     layout="wide",
     page_icon="💻"
 )
@@ -266,7 +266,7 @@ def technical_questions_panel():
 def interview_panel():
     """Panel for the interview interface"""
     with st.container(border=True):
-        st.subheader("🎤 Live Interview")
+        st.subheader("👨‍🏫 Live Interview")
         
         if st.button("Start Interview", key="start_interview"):
             with st.spinner("Setting up interview..."):
@@ -306,7 +306,7 @@ def interview_panel():
 def coding_panel():
     """Panel for the coding test"""
     with st.container(border=True):
-        st.subheader("💻 Coding Test")
+        st.subheader("💻 Coding Evaluation")
         
         if st.button("Start Coding Test", key="start_coding"):
             st.session_state.show_coding = True
@@ -318,7 +318,7 @@ def coding_panel():
                 st.session_state.show_coding = False
 
 def main():
-    st.title("💻 AI Technical Interview Platform")
+    st.title("💻 RecruiterAI by GSPANN")
     
     # Resume upload and analysis
     resume_file = st.sidebar.file_uploader("📄 Upload Resume (PDF)", type=["pdf"])

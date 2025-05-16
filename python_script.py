@@ -124,7 +124,7 @@ def create_conversation_context(candidate_info: Dict[str, Any], questions: list[
             4. **Closing Discussion**:
                - "What are you looking for in your next role?"
                - "Do you have any questions for me about the role/company?"
-            """ """
+            """
 
 def start_tavus_interview(candidate_info: Dict[str, Any], questions: list[str]):
     """Start Tavus interview with proper context."""

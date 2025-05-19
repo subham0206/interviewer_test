@@ -224,10 +224,6 @@ def coding_test_panel():
             except Exception as e:
                 st.session_state.console_output = f"=== Error ===\n{str(e)}"
     
-    if st.button("🧹 Reset Code", key="reset_code"):
-        st.session_state[f"editor_{lang}"] = question_data["starter_code"]
-        st.session_state.console_output = ""
-    
     if st.button("📋 Submit Solution", key="submit_code"):
         st.success("✅ Solution submitted!")
         st.balloons()

@@ -9,7 +9,7 @@ from typing import Optional, Dict, Any
 
 # Set page config
 st.set_page_config(
-    page_title="RecruiterAI by GSPANN", 
+    page_title="HumaneAI", 
     layout="wide",
     page_icon="🤖"
 )
@@ -314,7 +314,7 @@ def coding_panel():
                 st.session_state.show_coding = False
 
 def main():
-    st.title("🤖 RecruiterAI by GSPANN")
+    st.title("🤖 HumaneAI")
     
     # Resume upload and analysis
     resume_file = st.sidebar.file_uploader("📄 Upload Resume (PDF)", type=["pdf"])
@@ -353,3 +353,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

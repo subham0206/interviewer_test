@@ -77,38 +77,65 @@ def extract_text_from_pdf(pdf_file) -> str:
 
 
 def parse_resume_info(resume_text: str) -> Optional[Dict[str, Any]]:
-    try:
-        response = client.responses.create(
-            model="gpt-4.1-mini",
-            input=f"Extract structured resume data:\n\n{resume_text}",
-            response_format={
-                "type": "json_schema",
-                "json_schema": {
-                    "name": "resume_schema",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "name": {"type": "string"},
-                            "email": {"type": "string"},
-                            "experience": {"type": "string"},
-                            "job_title": {"type": "string"},
-                            "skills": {
-                                "type": "array",
-                                "items": {"type": "string"}
-                            },
-                            "education": {"type": "string"},
-                            "projects": {
-                                "type": "array",
-                                "items": {"type": "string"}
-                            }
-                        },
-                        "required": ["name", "email", "experience", "job_title", "skills", "education", "projects"]
-                    }
-                }
-            }
-        )
+    """Extract structured information from resume text."""
 
-        return json.loads(response.output_text)
+    prompt = f"""
+Extract the following information from this resume.
+
+Return ONLY valid JSON.
+Do NOT add explanation.
+Do NOT wrap in markdown.
+
+Required format:
+{{
+    "name": "string",
+    "email": "string",
+    "experience": "string",
+    "job_title": "string",
+    "skills": ["skill1", "skill2"],
+    "education": "string",
+    "projects": ["project1", "project2"]
+}}
+
+Resume:
+{resume_text}
+"""
+
+    try:
+        raw_response = gpt_response(prompt, temperature=0.2)
+
+        if not raw_response:
+            st.error("Empty response from GPT.")
+            return None
+
+        cleaned = raw_response.strip()
+
+        # Remove markdown if present
+        if cleaned.startswith("```"):
+            cleaned = cleaned.replace("```json", "").replace("```", "").strip()
+
+        # Attempt JSON parsing
+        parsed = json.loads(cleaned)
+
+        # Validate required keys exist
+        required_keys = ["name", "email", "experience", "job_title", "skills", "education", "projects"]
+
+        for key in required_keys:
+            if key not in parsed:
+                st.error(f"Missing key in response: {key}")
+                return None
+
+        return parsed
+
+    except json.JSONDecodeError:
+        st.error("GPT returned invalid JSON. Showing raw response below:")
+        st.code(raw_response)
+        return None
+
+    except Exception as e:
+        st.error(f"Resume extraction failed: {str(e)}")
+        return None
+
 
     except Exception as e:
         st.error(f"Resume extraction failed: {str(e)}")
@@ -358,6 +385,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

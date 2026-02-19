@@ -74,40 +74,45 @@ def extract_text_from_pdf(pdf_file) -> str:
         st.error(f"Error reading PDF: {str(e)}")
         return ""
 
-def gpt_response(prompt: str, temperature: float = 0.7) -> str:
-    """Get response from OpenAI GPT model."""
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=temperature
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        st.error(f"Failed to get GPT response: {str(e)}")
-        return ""
+
 
 def parse_resume_info(resume_text: str) -> Optional[Dict[str, Any]]:
-    """Extract structured information from resume text."""
-    prompt = f"""Extract from this resume:
-    - Full Name
-    - Email Address
-    - Total Years of Experience
-    - Current/Most Recent Job Title
-    - Top 5 Technical Skills
-    - Education Background
-    - 2 Notable Projects
-    
-    Resume:
-    {resume_text}
-    
-    Respond in JSON format with keys: name, email, experience, job_title, skills, education, projects"""
     try:
-        return json.loads(gpt_response(prompt, temperature=0.3))
-    except Exception:
-        st.error("Failed to extract resume info.")
-        return None
+        response = client.responses.create(
+            model="gpt-4.1-mini",
+            input=f"Extract structured resume data:\n\n{resume_text}",
+            response_format={
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "resume_schema",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string"},
+                            "email": {"type": "string"},
+                            "experience": {"type": "string"},
+                            "job_title": {"type": "string"},
+                            "skills": {
+                                "type": "array",
+                                "items": {"type": "string"}
+                            },
+                            "education": {"type": "string"},
+                            "projects": {
+                                "type": "array",
+                                "items": {"type": "string"}
+                            }
+                        },
+                        "required": ["name", "email", "experience", "job_title", "skills", "education", "projects"]
+                    }
+                }
+            }
+        )
 
+        return json.loads(response.output_text)
+
+    except Exception as e:
+        st.error(f"Resume extraction failed: {str(e)}")
+        return None
 def generate_technical_questions(candidate_info: Dict[str, Any]) -> list[str]:
     """Generate top 5 technical questions based on resume."""
     prompt = f"""As an expert technical interviewer, generate exactly 5 specific technical questions 
@@ -353,6 +358,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

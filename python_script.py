@@ -73,6 +73,22 @@ def extract_text_from_pdf(pdf_file) -> str:
     except Exception as e:
         st.error(f"Error reading PDF: {str(e)}")
         return ""
+        
+def gpt_response(prompt: str, temperature: float = 0.7) -> str:
+    """Get response from OpenAI GPT model."""
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Return clean and structured responses."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=temperature
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        st.error(f"Failed to get GPT response: {str(e)}")
+        return ""
 
 
 
@@ -385,6 +401,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
